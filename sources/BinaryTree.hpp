@@ -5,12 +5,12 @@ namespace ariel{
         
         public:
             /* ----- Node ----- */
-            class Node{
+            struct Node{
                 T data;
                 Node* parent;
                 Node* left;
                 Node* right;
-                public:
+
                 //constractor
                 Node(const T& d, Node* l=nullptr, Node* r=nullptr, Node* p=nullptr):data(d),left(l),right(r),parent(p){}
             };   
@@ -177,22 +177,82 @@ namespace ariel{
 
         BinaryTree<T> &operator=(BinaryTree<T> &&other){}
         
-        BinaryTree<T> add_root(T v){
+
+          Node* search_node_recursive(T d, Node* node){
+            if(node->data == d){
+                return node; //node found
+            }
+
+            Node* n = nullptr;
+
+            if(node->left != nullptr && n == nullptr){
+                n = search_node_recursive(d, node->left);
+            }
+
+            if(node->right != nullptr && n == nullptr){
+                n = search_node_recursive(d, node->right);
+            }
+            return n;
+        }
+
+        BinaryTree<T> add_root(T d){
             if(this->root == nullptr){
-                this->root = new Node(v);
+                this->root = new Node(d);
             }
             else{
-                this->root->data = v;
+                this->root->data = d;
             }
 
             return *this;
         }
 
-        BinaryTree<T> add_left(T father,T left_child){
+        BinaryTree<T> add_left(T p,T left_child){
+            if(this->root == nullptr){
+                throw std::invalid_argument("Empty BinaryTree!");
+            }
+
+            else{
+                Node* found = search_node_recursive(p,this->root);
+                //if exist
+                if(found == nullptr){
+                    throw std::out_of_range("doesn't exist!");
+                }
+
+                else{
+                    if(found->left == nullptr){ //doesn't have left child
+                        found->left = new Node(left_child);
+                        found->left->parent = found;
+                    }
+                    else{ // had left child - switch data
+                        found->left->data = left_child;
+                    }
+                }
+            }
             return *this;
         }
 
-        BinaryTree<T> add_right(T father,T right_child){
+        BinaryTree<T> add_right(T p,T right_child){
+             if(this->root == nullptr){
+                throw std::invalid_argument("Empty BinaryTree!");
+            }
+            
+            else{
+                Node* found = search_node_recursive(p,this->root);
+                //if exist
+                if(found == nullptr){
+                    throw std::out_of_range("doesn't exist!");
+                }
+
+                else{
+                    if(found->right == nullptr){ //doesn't have right child
+                        found->right = new Node(right_child);
+                        found->right->parent = found;
+                    }
+                    else{ // had right child - switch data
+                        found->right->data = right_child;
+                    }
+                }
+            }
             return *this;
         }
 
