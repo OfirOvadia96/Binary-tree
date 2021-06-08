@@ -13,6 +13,13 @@ namespace ariel{
 
                 //constractor
                 Node(const T& d, Node* l=nullptr, Node* r=nullptr, Node* p=nullptr):data(d),left(l),right(r),parent(p){}
+                
+                //destractor
+                ~Node() {
+                delete parent;
+                delete left;
+                delete right;
+                }
             };   
 
         /* -----preorder_iterator ----- */
@@ -23,9 +30,15 @@ namespace ariel{
 
             public:
 
-                preorder_iterator(Node* n = nullptr) : current(n){}
+                preorder_iterator(Node* n = nullptr):current(n){}
 
-                preorder_iterator& operator++(){
+                preorder_iterator operator++(int){
+                    preorder_iterator temp = *this;
+                    ++(*this);
+                    return temp;
+                }
+
+                preorder_iterator& operator++(){ //need fix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     if(current != nullptr){
                         if (current->left != nullptr){
                             current = current->left;
@@ -45,7 +58,7 @@ namespace ariel{
                     return *this;
                 }
 
-                bool operator==(preorder_iterator& iter){
+                bool operator==(const preorder_iterator& iter){
                     return iter.current == this->current;
                     }
 
@@ -58,7 +71,7 @@ namespace ariel{
                     }
 
                 T* operator->() const{
-                    return &current;
+                    return &current->data;
                 }
         };
 
@@ -69,16 +82,22 @@ namespace ariel{
                 Node* current;
 
             public:
+                inorder_iterator():current(nullptr){}
 
-                inorder_iterator(Node* n = nullptr) : current(n){
-                    if(current !=nullptr){
-                        while(current!=nullptr){
-                            current = current->left;
+                inorder_iterator(Node* n):current(n){
+                    if(this->current !=nullptr){
+                        while(this->current!=nullptr){
+                            this->current = this->current->left;
                         }
                     }
                 }
+                inorder_iterator operator++(int){
+                    inorder_iterator temp = *this;
+                    ++(*this);
+                    return temp;
+                }
 
-                inorder_iterator& operator++(){
+                inorder_iterator& operator++(){ //need fix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     if(current != nullptr){
                         if(current->right != nullptr){
                             current = current->right;
@@ -97,7 +116,7 @@ namespace ariel{
                     return *this;
                     }
 
-                bool operator==(inorder_iterator& it){
+                bool operator==(const inorder_iterator& it){
                     return this->current == it.current;
                 }
 
@@ -109,8 +128,8 @@ namespace ariel{
                     return current->data;
                 }
 
-                T* operator->(){ 
-                    return &current;
+                T* operator->() const{ 
+                    return &current->data;
                 }
         };
 
@@ -121,21 +140,40 @@ namespace ariel{
 
             public:
 
-                postorder_iterator(Node* p = nullptr) : current(p){}
+                postorder_iterator():current(nullptr){}
 
-                postorder_iterator& operator++(){
-                    if (current != nullptr){
-                        Node temp = current;
-                        if (current->parent != nullptr){
-                            current = current->parent;
-                            if (current->right != nullptr && current->right != temp){
-                                current = current->right;
-                                while (current->left != nullptr || current->right != nullptr){
-                                    if (current->left != nullptr){
-                                        current = current->left;
+                postorder_iterator(Node* p):current(p){
+                    if (this->current == nullptr){return;}
+                    
+                    while (this->current->left != nullptr || this->current->right != nullptr){
+                        if (this->current->left != nullptr){
+                            this->current = this->current->left;
+                        }
+                        else if(this->current->right != nullptr){
+                            this->current = this->current->right;
+                        }
+                    }
+                }
+
+                postorder_iterator operator++(int){
+                    postorder_iterator temp = *this;
+                    ++(*this);
+                    return temp;
+                }
+
+                postorder_iterator& operator++(){ // need fix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    if (this->current != nullptr){
+                        Node* temp = this->current;
+                        if (this->current->parent != nullptr){
+                            this->current = this->current->parent;
+                            if (this->current->right != nullptr && this->current->right != temp){
+                                this->current = this->current->right;
+                                while (this->current->left != nullptr || this->current->right != nullptr){
+                                    if (this->current->left != nullptr){
+                                        this->current = this->current->left;
                                     }
                                     else{
-                                        current = current->right;
+                                        this->current = this->current->right;
                                     }
                                 }
                             }
@@ -144,7 +182,7 @@ namespace ariel{
                     return *this;
                 }
 
-                bool operator==(postorder_iterator& iter){
+                bool operator==(const postorder_iterator& iter){
                     return this->current == iter.current;
                 }
 
@@ -156,8 +194,8 @@ namespace ariel{
                     return current->data;
                 }
 
-                T* operator->(){
-                    return &(current->data);
+                T* operator->() const{
+                    return &current->data;
                 }
         };
 
@@ -170,12 +208,52 @@ namespace ariel{
         BinaryTree<T>():root(nullptr){}
 
         /* copy constractor */
-        BinaryTree<T>(const BinaryTree<T>& other_tree){}
+        BinaryTree<T>(const BinaryTree<T>& other_tree){
+            if (other_tree.root == nullptr) {
+                return;
+            }
+            this->root = new Node(other_tree.root->data); //create root
+            nodes_copy_rec(*other_tree.root, *this->root); //copy the other nodes
+        }
+
+        BinaryTree(BinaryTree<T> && other_tree){
+            this->root = other_tree.root; // point to the same root
+            other_tree.root = nullptr;  // "remove" the older pointer
+        }
+
+        static void nodes_copy_rec(const Node& other_tree, Node& new_tree){
+            if (other_tree.left != nullptr) {
+                new_tree.left = new Node(other_tree.left->data);
+                nodes_copy_rec(*other_tree.left, *new_tree.left);
+            }
+
+            if (other_tree.right != nullptr) {
+                new_tree.right = new Node(other_tree.right->data);
+                nodes_copy_rec(*other_tree.right, *new_tree.right);
+            }
+        }
         
         /* destractor */
         ~BinaryTree<T>(){}
+        
+        //deep copy
+        BinaryTree<T>& operator=(BinaryTree<T>& other_tree){
+            if(this->root != nullptr){
+                delete this->root; //deleting the existing one
+            }
 
-        BinaryTree<T> &operator=(BinaryTree<T> &&other){}
+            this->root = new Node(other_tree.root->data); //create a new one
+            nodes_copy_rec(*other_tree.root, *this->root); //copy the other nodes
+            
+            return *this;
+            }
+
+        //superficial copy - "move constructor"
+        BinaryTree<T>& operator=(BinaryTree<T>&& other_tree){
+            this->root = other_tree->root; // point to the same root
+            other_tree->root = nullptr; // "remove" the older pointer
+            return *this;
+        }
         
 
           Node* search_node_recursive(T d, Node* node){
@@ -232,7 +310,7 @@ namespace ariel{
         }
 
         BinaryTree<T> add_right(T p,T right_child){
-             if(this->root == nullptr){
+            if(this->root == nullptr){
                 throw std::invalid_argument("Empty BinaryTree!");
             }
             
