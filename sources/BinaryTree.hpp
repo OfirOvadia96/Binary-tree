@@ -50,18 +50,19 @@ namespace ariel{
                 preorder_iterator& operator++(){
                     if (my_stack.empty()) {
                         current = nullptr;
-                        return *this;
                     }
-
-                    current = my_stack.top();
-                    my_stack.pop();
-                    if (current->right) {
-                        my_stack.push(current->right);
+                    
+                    else{
+                        current = my_stack.top();
+                        my_stack.pop();
+                        if(current->right) {
+                            my_stack.push(current->right);
                         }
 
-                    if (current->left) {
-                        my_stack.push(current->left);
-                        } 
+                        if (current->left) {
+                            my_stack.push(current->left);
+                        }
+                    } 
                     return *this;
                 }
 
@@ -109,19 +110,21 @@ namespace ariel{
                 }
 
                 inorder_iterator& operator++(){
-                    current = current->right;
-                    if (my_stack.empty() && current==nullptr) {
-                        current = nullptr;
-                        return *this;
+                    if(current != nullptr){
+                        current = current->right;
+                        if (!my_stack.empty() || current != nullptr) {
+                        
+                            while(current != nullptr) {
+                                my_stack.push(current);
+                                current = current->left;
+                            }
+
+                            current = my_stack.top();
+                            my_stack.pop();
+                        }
                     }
-                    while(current != nullptr) {
-                        my_stack.push(current);
-                        current = current->left;
-                    }
-                    current = my_stack.top();
-                    my_stack.pop();
                     return *this;
-                    }
+                }
 
                 bool operator==(const inorder_iterator& it){
                     return this->current == it.current;
@@ -156,9 +159,15 @@ namespace ariel{
                             current = first.top();
                             first.pop();
                             second.push(current);
-                            if (current->left) {first.push(current->left);}
-                            if (current->right) {first.push(current->right);}
+                            if (current->left) {
+                                first.push(current->left);
+                            }
+
+                            if (current->right) {
+                                first.push(current->right);
+                            }
                         }
+                        
                     current = second.top();
                     second.pop();
                     }
@@ -171,12 +180,15 @@ namespace ariel{
                 }
 
                 postorder_iterator& operator++(){ 
-                    if (second.empty()) {
-                        current = nullptr;
-                        return *this;
+                    if (!second.empty()) { //if there is more nodes
+                        current = second.top();
+                        second.pop();
                     }
-                    current = second.top();
-                    second.pop();
+
+                    else{ //if there not
+                       current = nullptr;
+                    }
+
                     return *this;
                 }
 
