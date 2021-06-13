@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stack>
 
-//credit : https://www.geeksforgeeks.org/iterative-preorder-traversal/ (the idea of stack)
+//source : https://www.geeksforgeeks.org/iterative-preorder-traversal/ (the idea of stack)
 
 namespace ariel{
     template<typename T> class BinaryTree{
